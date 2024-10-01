@@ -17,4 +17,4 @@ hsp_runner.py runs between the user and HSpice from the command line to graceful
 hsp_stimulus.py generates arbitrary bit pattern stimulus for simulations with option enforcement of 8b/10b encoding.  It supports jitter in both gaussian and sinusoidal, written to test post processing algorithms with known jitter fingerprints but also works well in regular Spice channel analysis.
 
 ### PCI-SIG Seasim
-seasim_clean.py cleans up simulation files and resampled .pkl model files when using the Seasim PCI Express channel simulator, for human readability and disk usage limiting.  User controlled selection by age of files to avoid current work.
+seasim_clean.py cleans up simulation files and resampled .pkl model files when using the Seasim PCI Express channel simulator, for human readability and disk usage limiting.  User controlled deletion criteria by age of files to keep more current results.
