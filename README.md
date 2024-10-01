@@ -10,3 +10,5 @@ tstscale.py lets you arbitrarily modify loss profiles in a simulation by scaling
 pindelay.py converts English units to metric to make mixing of environments less error prone and more human readable in Cadence Allegro constraint manager.  Input assumes Cadence formatted export file in mils, which appears to be what you get in 17.2 regardless of database settings.
 
 cad2hyp.py converts Cadence Allegro board files to ascii for importing into Mentor Hyperlynx, working around a bug/license issue and that kept the automated process from working correctly.  This takes a .brd file as an input and just creates all the correct syntax for the ascii export.
+
+seasim_clean.py cleans up simulation files and resampled .pkl model files when using the Seasim PCI Express channel simulator, for human readability and disk usage limiting.  User controlled selection by age of files to avoid current work.
