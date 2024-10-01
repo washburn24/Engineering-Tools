@@ -12,3 +12,7 @@ pindelay.py converts English units to metric to make mixing of environments less
 cad2hyp.py converts Cadence Allegro board files to ascii for importing into Mentor Hyperlynx, working around a bug/license issue and that kept the automated process from working correctly.  This takes a .brd file as an input and just creates all the correct syntax for the ascii export.
 
 seasim_clean.py cleans up simulation files and resampled .pkl model files when using the Seasim PCI Express channel simulator, for human readability and disk usage limiting.  User controlled selection by age of files to avoid current work.
+
+hsp_runner.py runs between the user and HSpice from the command line to gracefully handle license in use errors to keep long batch simulations from dying.  It derived from an intermittent network issue, but work for real license conflicts as well.
+
+hsp_stimulus.py generates arbitrary bit pattern stimulus for simulations with option enforcement of 8b/10b encoding.  It supports jitter in both gaussian and sinusoidal, written to test post processing algorithms with known jitter fingerprints but also works well in regular Spice channel analysis.
