@@ -18,3 +18,8 @@ hsp_stimulus.py generates arbitrary bit pattern stimulus for simulations with op
 
 ### PCI-SIG Seasim
 seasim_clean.py cleans up simulation files and resampled .pkl model files when using the Seasim PCI Express channel simulator, for human readability and disk usage limiting.  User controlled deletion criteria by age of files to keep more current results.
+
+### PCI-SIG SigTest
+sigtest_run.py is a batch file runner for SigTest to process many results at once.  User provides the template file, the script does everything else.
+
+sigtest_cleanup.py is a companion script to move image files to a subdirectory while editing the HTML files that point to them such that they still work.  This makes the main directory cleaner and the image subdirectory doesn't need to be as human readable, since those images are linked to from HTML reports.
