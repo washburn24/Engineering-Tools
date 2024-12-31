@@ -4,7 +4,7 @@ It's purpose in life is parsing Touchstone files for bad characters that ADS cho
 but it could be made to arbitrarily remove bad characters from any text file by removing some safety features
 The comment lines are the offender here, so those are the lines the script acts on by splitting on the ! character
 It does some rough but imperfect checking to exclude files it knows aren't Touchstone by parsing the config line
-So, it should be relatively safe, but it's only really tested on .sNp files.
+So it should be relatively safe for broad wildcard usage but isn't deeply tested for that.
 """
 from sys import argv
 from glob import glob
@@ -12,75 +12,78 @@ from shutil import move
 from os import remove
 from os import path
 
+# Routine for input argument processing with some basic error handling for help
+def inputHandler(args,allFiles=[]):
+    if(len(args) > 1):
+        if(args[1].lower()=="help" or args[1].lower()=="-help" or args[1].lower()=="-h" or args[1].lower()=="/h"):
+            print("\ntstclean.py Touchstone Cleaner Help:")
+            print("Script requires an input argument from the command line")
+            exit("Input arguments are filenames; lists and wildcards are both supported.")
+    else:
+        exit("\nError: No argument passed as input, provide input file(s) or use -help for usage info.")
+    for counter in range(1,len(args)):
+        allFiles += expandFiles(args[counter])
+    return(allFiles)
+
 # Routine to expand wildcards (if present) and return matching files in a useful list
-def expandFiles(inFile):
+def expandFiles(inputArgument):
     fileList=[]
-    if(inFile.count("*")):   # Expand wildcard and find matches
-        files = glob(inFile)
+    if(inputArgument.count("*")):   # If wildcard expand and find matches
+        files = glob(inputArgument)
         for file in files:
             if(path.isfile(file)):
                 fileList.append(file)
-    else:                    # Or check filenames against full directory listing
-        files = glob("*.*")
+    else:                    # Else check filenames against full directory listing
+        files = glob("*")
         for file in files:
-            if(file==inFile):
-                fileList.append(inFile)
+            if(file==inputArgument):
+                fileList.append(file)
     return(fileList)
 
 # Main function for file reading and writing (handled concurrently then moved, overwriting the input file)
-def main(fileList,token):
-    for inFile in fileList:
-        tempFile = open("tmp1234.tmp","w")
-        print ("\nOpening %s..." % inFile)
-        with open(inFile) as readFile:
+def main(filenameList,flag="FALSE"):
+    for touchFile in filenameList:
+        writeFile = open("tmp1234.tmp","w")
+        print ("\nOpening %s..." % touchFile)
+        with open(touchFile) as readFile:
+            frequencyChecker=""
             try:
-                for line in readFile:      # Read input file a line at a time until we have all lines
-                    line = line.rstrip()   # Strip trailing whitespace and CRs
+                for line in readFile:
+                    line = line.rstrip()   # Strip trailing whitespace and CRs, we'll put it back when writing
                     if(line.count("#")):
                         cleanArgs=[]
                         nullCheck = line.split("#"); tsArgs = line.split(" ")
-                        freqCheck=tsArgs[1].lower()
-                        for item in tsArgs:   # This loop cleans arbitrary whitespace from option line
+                        frequencyChecker=tsArgs[1].lower()
+                        for item in tsArgs:   # This loop cleans arbitrary whitespace from Touchstone option line
                             if(item):
                                 cleanArgs.append(item)
-                        if(len(nullCheck[0])==0 and len(cleanArgs)==6 and freqCheck.count("z")):
-                            token=7    # If TS option line exists with the right number of arguments, set token
-                            freqCheck=""
+                        if(len(nullCheck[0])==0 and len(cleanArgs)==6 and frequencyChecker.count("z")):
+                            flag="TRUE"    # If TS option line exists with the right number of arguments, set flag
                     if(line.count("!")):
-                        arg = line.split("!")  # Split on comment character to check for bad lines
+                        arg = line.split("!")
                         index=0; commLine=""
                         while (index < len(arg)):   # Handle multiple comment characters on one line
                             if(index):
                                 commLine = commLine + "!" + arg[index]
                             index = index+1
-                        tempFile.write(commLine +"\n")
+                        writeFile.write(commLine +"\n")
                     else:
-                        tempFile.write(line + "\n")
-            except UnicodeDecodeError:    # Binary files break the script, so check for those
-                pass    # Don't act on the error, the main loop will clean things up and go to next file
-            tempFile.close(); readFile.close()
-            if(token==7):    # If identified as a Touchstone file, move temp to input otherwise delete and do nothing
-                move("tmp1234.tmp",inFile)
-                print ("%s successfully converted." % inFile)
-                token=0
+                        writeFile.write(line + "\n")
+            except UnicodeDecodeError:    # Binary files break the script, so error handle those
+                print("\nError: Binary file found.")
+            writeFile.close(); readFile.close()
+            if(flag=="TRUE"):  # If identified as a Touchstone file, move temp to input otherwise delete and move on
+                move("tmp1234.tmp",touchFile)
+                print ("%s successfully converted." % touchFile)
+                flag="FALSE"
             else:
                 remove("tmp1234.tmp")
-                print ("%s is not a Touchstone file and is unsupported, no modifications made." % inFile)
+                print ("%s is not a Touchstone file and is unsupported, no modifications made." % touchFile)
 
+# Build a file list with input arguments and wild card expansion, then act on those files
 if __name__=="__main__":
-    AllFiles=[]
-    # Input argument processing with some basic error handling and disaster avoidance via exit conditions
-    if(len(argv) > 1):
-        if(argv[1].lower()=="help" or argv[1]=="--help" or argv[1]=="-h" or argv[1]=="/h"):
-            print("\ntstclean.py Touchstone Cleaner Help:")
-            print("Script requires an input argument from the command line")
-            exit("Input arguments are filenames, lists and wildcards are both supported.")
-        for counter in range(1,len(argv)):
-            AllFiles = AllFiles + expandFiles(argv[counter])
-    else:
-        exit("\nError: No argument passed as input, provide input file(s) or use -h for help.")
-    # Once a valid file list is assembled process them in main function, if none found exit
-    if(len(AllFiles)):
-        main (AllFiles,0)
+    fileNames = inputHandler(argv)
+    if(len(fileNames)):
+        main (fileNames)
     else:
         exit("\nNo matching files found.")
