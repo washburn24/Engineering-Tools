@@ -13,10 +13,11 @@ from os import remove
 from os import path
 
 # Routine for input argument processing with some basic error handling for help
-def inputHandler(args,allFiles=[]):
+def inputHandler(args):
+    allFiles=[]
     if(len(args) > 1):
         if(args[1].lower()=="help" or args[1].lower()=="-help" or args[1].lower()=="-h" or args[1].lower()=="/h"):
-            print("\ntstclean.py Touchstone Cleaner Help:")
+            print("\ntstclean.py Touchstone File Cleaner Help:")
             print("Script requires an input argument from the command line")
             exit("Input arguments are filenames; lists and wildcards are both supported.")
     else:
@@ -27,29 +28,33 @@ def inputHandler(args,allFiles=[]):
 
 # Routine to expand wildcards (if present) and return matching files in a useful list
 def expandFiles(inputArgument):
-    fileList=[]
+    subfileList=[]
     if(inputArgument.count("*")):   # If wildcard expand and find matches
         files = glob(inputArgument)
         for file in files:
             if(path.isfile(file)):
-                fileList.append(file)
-    else:                    # Else check filenames against full directory listing
+                subfileList.append(file)
+    else:                    # Else check specific filenames against full directory listing
         files = glob("*")
         for file in files:
             if(file==inputArgument):
-                fileList.append(file)
-    return(fileList)
+                subfileList.append(file)
+    return(subfileList)
 
 # Main function for file reading and writing (handled concurrently then moved, overwriting the input file)
-def main(filenameList,flag="FALSE"):
-    for touchFile in filenameList:
+def main(fileList,flag="FALSE"):
+    noduplicateList=[]
+    for item in fileList:
+        if item not in noduplicateList:
+            noduplicateList.append(item)
+    for touchFile in noduplicateList:
         writeFile = open("tmp1234.tmp","w")
         print ("\nOpening %s..." % touchFile)
         with open(touchFile) as readFile:
             frequencyChecker=""
             try:
                 for line in readFile:
-                    line = line.rstrip()   # Strip trailing whitespace and CRs, we'll put it back when writing
+                    line = line.rstrip()   # Strip trailing whitespace and CRs, we'll put CRs back when writing
                     if(line.count("#")):
                         cleanArgs=[]
                         nullCheck = line.split("#"); tsArgs = line.split(" ")
@@ -70,7 +75,7 @@ def main(filenameList,flag="FALSE"):
                     else:
                         writeFile.write(line + "\n")
             except UnicodeDecodeError:    # Binary files break the script, so error handle those
-                print("\nError: Binary file found.")
+                print("Error: Binary file found.")
             writeFile.close(); readFile.close()
             if(flag=="TRUE"):  # If identified as a Touchstone file, move temp to input otherwise delete and move on
                 move("tmp1234.tmp",touchFile)
