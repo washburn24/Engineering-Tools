@@ -1,46 +1,62 @@
 """
-This script coverts Cadence Allegro Pin Delay exports from English to Metric units.  It's started from another
-script so it does stuff you shouldn't really need like wildcard expansion.  We won't modify the input file but
-rather generate files with the same basename appended with _metric.  This makes double checking the results in
-constraint manager easier on the back end but this conversion. If an output target exists it is overwritten so
-this script is safe to run multiple times.
+This script coverts Cadence Allegro Pin Delay exports from English to Metric units. It started from another script so
+it does stuff you shouldn't really need like wildcard expansion. We won't modify the input file but rather generate
+files with the same basename appended with _metric. This makes double checking the results in constraint manager
+easier on the back end, saving you mental conversion. If an output target exists it is overwritten so this script is
+safe to run multiple times. It also checks for MIL in the input file, so wildcards are safe on already converted files.
 """
 from sys import argv
 from glob import glob
-from os import remove
-from os import path
+from os import remove, path
+
+# Routine for input argument processing with some basic error handling for help
+def inputHandler(args):
+    allFiles=[]
+    if(len(args) > 1):
+        if(args[1].lower()=="help" or args[1].lower()=="-help" or args[1].lower()=="-h" or args[1].lower()=="/h"):
+            print("\npindelay.py Allegro English to Metric Unit Conversion Help:")
+            print("Script requires an input argument from the command line")
+            exit("Input arguments are filenames; lists and wildcards are both supported.")
+        for counter in range(1,len(args)):
+            allFiles = allFiles + expandFiles(args[counter])
+    else:
+        exit("\nError: No argument passed as input, provide input file(s) or use -help for usage info.")
+    return(allFiles)
 
 # Routine to expand wildcards (if present) and return matching files in a useful list
-def expandFiles(inFile):
-    fileList=[]
-    if(inFile.count("*")):   # Expand wildcard and find matches
-        files = glob(inFile)
+def expandFiles(inputArgument):
+    subfileList=[]
+    if(inputArgument.count("*")):   # If wildcard expand and find matches
+        files = glob(inputArgument)
         for file in files:
             if(path.isfile(file)):
-                fileList.append(file)
-    else:                    # Or check filenames against full directory listing
-        files = glob("*.*")
+                subfileList.append(file)
+    else:                    # Else check specific filenames against full directory listing
+        files = glob("*")
         for file in files:
-            if(file==inFile):
-                fileList.append(inFile)
-    return(fileList)
+            if(file==inputArgument):
+                subfileList.append(file)
+    return(subfileList)
 
 # Main function for file reading and writing (handled concurrently)
-def main(fileList,token):
-    for inFile in fileList:
-        token = 0
-        if inFile.count("."):  # Build output filename but support files that don't have a "."
-            outName = inFile.split(".")[0] + "_metric." + inFile.split(".")[1]
+def main(fileList,flag="FALSE"):
+    noduplicateList=[]
+    for item in fileList:
+        if item not in noduplicateList:
+            noduplicateList.append(item)
+    for inputFile in noduplicateList:
+        if inputFile.count("."):  # Build output filename but support files that don't have a "."
+            outputFile = inputFile.split(".")[0] + "_metric." + inputFile.split(".")[1]
         else:
-            outName = inFile + "_metric"
-        outFile = open(outName,"w")
-        print ("\nOpening %s..." % inFile)
-        with open(inFile) as readFile:
+            outputFile = inputFile + "_metric"
+        outFile = open(outputFile,"w")
+        print ("\nOpening %s..." % inputFile)
+        with open(inputFile) as readFile:
             try:
-                for line in readFile:      # Read input file a line at a time until we have all lines
-                    line = line.rstrip()   # Strip trailing whitespace and CRs
+                for line in readFile:
+                    line = line.rstrip()   # Strip trailing whitespace and CRs, we'll put CRs back when writing
                     if(line.count("MIL")):
-                        token = 7
+                        flag = "TRUE"
                         pinName = line.split(",")[0]
                         lengthEnglish = line.split(",")[1]
                         lengthEnglish = lengthEnglish.split(" ")[0]
@@ -49,29 +65,17 @@ def main(fileList,token):
                     else:
                         outFile.write(line + "\n")
             except UnicodeDecodeError:    # Binary files break the script, so check for those
-                remove(outName)  # If we choke on a binary, the outfile should be deleted
+                print("Error: Binary file found.")
             outFile.close(); readFile.close()
-            if(token==7):
-                print (inFile + "successfully converted to " + outName)
-                token=0
+            if(flag=="TRUE"):
+                print (inputFile + "successfully converted to " + outputFile); flag="FALSE"
             else:
-                remove(outName)
-                print ("No English units found in input file " + inFile + ". Nothing to do.")
+                print ("No English units found in input file " + inputFile + ". Nothing to do."); remove(outputFile)
 
+# Build file list with input arguments and wild card expansion, then act on those files
 if __name__=="__main__":
-    AllFiles=[]
-    # Input argument processing with some basic error handling and disaster avoidance via exit conditions
-    if(len(argv) > 1):
-        if(argv[1].lower()=="help" or argv[1].lower()=="--help" or argv[1]=="-h" or argv[1]=="/h"):
-            print("\nPinDelay.py Help:")
-            print("Script requires an input argument from the command line")
-            exit("Input arguments are filenames, lists and wildcards are both supported.")
-        for counter in range(1,len(argv)):
-            AllFiles = AllFiles + expandFiles(argv[counter])
-    else:
-        exit("\nError: No argument passed as input, provide input file(s) or use -h for help.\n")
-    # Once a valid file list is assembled process them in main function, if none found exit
-    if(len(AllFiles)):
-        main (AllFiles,0)
+    fileNames = inputHandler(argv)
+    if(len(fileNames)):
+        main (fileNames)
     else:
         exit("\nNo matching files found.\n")
