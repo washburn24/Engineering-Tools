@@ -23,3 +23,5 @@ seasim_clean.py cleans up simulation files and resampled .pkl model files when u
 sigtest_run.py is a batch file runner for SigTest to process many waveform results at once.  User provides the template file, the script does everything else.
 
 sigtest_cleanup.py is a companion script to move image files to a subdirectory while editing the HTML files that point to them such that they still work.  This makes the main directory cleaner and the image subdirectory doesn't need to be as human readable, since those images are linked to from HTML reports.
+
+tekshrink.py is a script built to reduce file sizes of output data from Tektronix oscilloscope.  It's general use, but it's purpose in life is to speed up batch processing with other SigTest tools.
