@@ -10,15 +10,15 @@ from os import system
 from os import path
 from sys import argv
 
-if(__name__=="__main__"):
+if __name__== "__main__":
    # Simple error checking to make sure the number of arguments is right so we get the filename
-   if(len(argv)==1):
+   if len(argv)==1:
       exit("\nNo input file given, program takes filename.brd")
-   elif(len(argv)>2):
+   elif len(argv)>2:
       exit("\nToo many arguments given, program takes filename.brd")
    else:
       # Simple error checking to make sure the file exists so we don't pass junk to the translation tool
-      if(path.isfile(argv[1])):
+      if path.isfile(argv[1]):
          print("Opening " + argv[1])
       else:
          exit("\nInput file " + argv[1] + " not found")
