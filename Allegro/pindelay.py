@@ -11,31 +11,31 @@ from os import remove, path
 
 # Routine for input argument processing with some basic error handling for help
 def inputHandler(args):
-    allFiles=[]
+    fileList=[]
     if len(args) > 1:
         if args[1].lower()=="help" or args[1].lower()=="-help" or args[1].lower()=="-h" or args[1].lower()=="/h":
             print("\npindelay.py Allegro English to Metric Unit Conversion Help:")
             print("Script requires an input argument from the command line.")
             exit("Input arguments are filenames; lists and wildcards are both supported.")
-        for counter in range(1,len(args)):
-            allFiles = allFiles + expandFiles(args[counter])
+        fileList = expandFiles(args)
     else:
         exit("\nError: No argument passed as input, provide input file(s) or use -help for usage info.")
-    return allFiles
+    return fileList
 
-# Routine to expand wildcards (if present) and return matching files in a useful list
+# Routine to expand an arbitrary list with wildcards (if present) and return list of unique filenames
 def expandFiles(inputArgument):
     fileList=[]
-    if inputArgument.count("*"):   # If wildcard expand and find matches
-        files = glob(inputArgument)
-        for file in files:
-            if path.isfile(file):
-                fileList.append(file)
-    else:                    # Else check specific filenames against full directory listing
-        files = glob("*")
-        for file in files:
-            if file==inputArgument:
-                fileList.append(file)
+    for arg in range(1,len(inputArgument)):
+        if inputArgument[arg].count("*"):   # If wildcard expand and find matches
+            files = glob(inputArgument[arg])
+            for file in files:
+                if path.isfile(file):
+                    fileList.append(file)
+        else:                    # Else check specific filenames against full directory listing
+            files = glob("*")
+            for file in files:
+                if file==inputArgument[arg]:
+                    fileList.append(file)
     noduplicateList=[]
     for item in fileList:
         if item not in noduplicateList:
@@ -75,7 +75,7 @@ def main(fileList,flag="FALSE"):
 # Build file list with input arguments and wild card expansion, then act on those files
 if __name__=="__main__":
     fileNames = inputHandler(argv)
-    if(len(fileNames)):
-        main (fileNames)
+    if fileNames:
+        main(fileNames)
     else:
         exit("\nNo matching files found.\n")
