@@ -16,16 +16,16 @@ safeMode = "False"       # Turn on safe mode "True" (script will print commands 
 # Routine to expand wildcards (if present) and return useful list of files
 def expandFiles(inFile):
     fileList=[]
-    if(inFile.count("*")):
+    if inFile.count("*"):
         files = glob(os.path.join(inFile))
         for file in files:
             fileList.append(file)
     else:
         files = glob(os.path.join("*.*"))
         for file in files:
-            if(file==inFile):
+            if file==inFile:
                 fileList.append(inFile)
-    return(fileList)
+    return fileList
 
 # The meat of the stuff in this script is here
 def processFiles(inFiles):
@@ -34,21 +34,21 @@ def processFiles(inFiles):
     global safeMode
     datFiles=[]; clkFiles=[]
     inFiles = expandFiles(inFiles)
-    if(templateFile.count("DUAL_PORT")):  # If "DUAL_PORT" is in the template name, do this
+    if templateFile.count("DUAL_PORT"):  # If "DUAL_PORT" is in the template name, do this
         for arg in inFiles:
-            if(arg.count("data")):       # Assumes a tag in the data waveform filename
+            if arg.count("data"):       # Assumes a tag in the data waveform filename
                 datFiles.append(arg)
-            elif(arg.count("clk")):      # Assumes a tag in the clock waveform filename
+            elif arg.count("clk"):      # Assumes a tag in the clock waveform filename
                 clkFiles.append(arg)
         for datArg in datFiles:
             datToken = datArg.split("data")   # Split on "data" to match the clk filename
             for clkArg in clkFiles:
-                if(clkArg.count(datToken[0])):   # Build the command line with arguments
+                if clkArg.count(datToken[0]):   # Build the command line with arguments
                     commandArg = "SigTest /d %s" % os.getcwd()
                     commandArg = commandArg + " /si %s " % sampleInt
                     commandArg = commandArg + "/t %s" % templateFile
                     commandArg = commandArg +" /s %s " % datArg + "/cs %s " % clkArg
-                    if(safeMode.lower() == "true"):
+                    if safeMode.lower() == "true":
                         print (commandArg)
                     else:
                         print ("Running SigTest on %s" % datArg)
@@ -59,16 +59,16 @@ def processFiles(inFiles):
             commandArg = commandArg + " /si %s " % sampleInt
             commandArg = commandArg + " /t %s" % templateFile
             commandArg = commandArg + " /s %s " % arg
-            if(safeMode.lower() == "true"):
+            if safeMode.lower() == "true":
                 print (commandArg)
             else:
                 print ("Running SigTest on %s" % arg)
                 os.system(commandArg)
 
-if(__name__=="__main__"):
-    if(len(argv) < 2):      # Accept exactly one argument (data filename wildcard)
+if __name__== "__main__":
+    if len(argv) < 2:      # Accept exactly one argument (data filename wildcard)
         exit("No arguments given for SigTest to process. Exiting.")
-    elif(len(argv) > 2):
+    elif len(argv) > 2:
         exit("Too many arguments given. Exiting.")
     else:
         processFiles(argv[1])

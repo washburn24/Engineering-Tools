@@ -10,11 +10,10 @@ from shutil import move
 
 # Routine to open, shrink, and rewrite each passed file
 def shrinkFile(inFile):
-    dataList=[]
     fileOut=open("temp123.temp",'w')
     for line in input(inFile):
         arg = line.split(",")
-        if(len(line) and arg.count(";")):  # If data exists and uncommented
+        if len(line) and arg.count(";"):  # If data exists and uncommented
             arg = float(arg.pop().strip())
             fileOut.write(str(arg)+'\n')
         else:       # If the first element not empty, it's header info
@@ -22,12 +21,12 @@ def shrinkFile(inFile):
     fileOut.close()
     move("temp123.temp",inFile)
 
-if(__name__=="__main__"):
+if __name__== "__main__":
     fileList=[]
     for i in range(1,len(argv)):
-        if(argv[i].count("*")):      # Expand wild cards in command line input
+        if argv[i].count("*"):      # Expand wild cards in command line input
             files = glob(argv[i])
-            if(len(files)==0):
+            if len(files)==0:
                 print ("No files match %s" % argv[i])
             for file in files:
                 fileList.append(file)
@@ -35,7 +34,7 @@ if(__name__=="__main__"):
             fileList.append(argv[i])
 
     for file in fileList:
-        if(path.isfile(file)):     # Make sure the file exists to avoid crashing
+        if path.isfile(file):     # Make sure the file exists to avoid crashing
             shrinkFile(file)
             print ("File %s converted" % file)
         else:

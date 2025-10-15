@@ -30,7 +30,7 @@ print("\nGenerating stimulus...",end="")
 
 # Can set output file from command line 'c:>hspstim.py whatever.inc'
 for arg in sys.argv:
-    if(countArgs>0):
+    if countArgs>0:
         outFile = sys.argv[1]
     countArgs=countArgs+1
 
@@ -38,9 +38,9 @@ for arg in sys.argv:
 print ("\b\b\b with gaussian jitter...",end="")
 for i in range (0,numBits):
     timeError[i]=random.gauss(0,1)
-    if(abs(timeError[i])>maxError):
+    if abs(timeError[i])>maxError:
         maxError = abs(timeError[i])
-#        if(i%1000000==0):
+#        if i%1000000==0:
 #            print(".",end="")
 #----------------------------------------------------------------------------#
 
@@ -49,19 +49,19 @@ for i in range (0,numBits):
 #sineClock = [0 for i in range (int(dataPoints+1))]
 #for i in range (0,int(dataPoints)):
 #    sineClock[i] = unitStep*i
-#    if(i%3000000==0): print ("\b.",)
+#    if i%3000000==0: print ("\b.", )
 #for i in range (0,numBits):
 #    timeError[i] = math.sin(2*math.pi*freqJitter*sineClock[i])
-#    if(abs(timeError[i])>maxError): maxError = abs(timeError[i])
-#    if(i%1000000==0): print ("\b.",)
+#    if abs(timeError[i])>maxError: maxError = abs(timeError[i])
+#    if i%1000000==0: print ("\b.", )
 #----------------------------------------------------------------------------#
 
 # Normalize the jitter by using calculated maxError and target jitter number
 for i in range (0,numBits):
-    if(maxError != 0):
+    if maxError != 0:
         timeError[i] = (targetJitter/2)*(timeError[i]/maxError)
 #    fileWrite.write(str(timeError[i])+"\n")
-#        if(i%1000000==0):
+#        if i%1000000==0:
 #            print (".",end="")
 #fileWrite.close()
 
@@ -70,26 +70,26 @@ fileWrite = open(outFile,'w')
 fileWrite.write("vstim stim 0 PWL (\n+ 0 0\n")
 for i in range (0,numBits):
     bitStream[i]=random.randint(0,1)
-    if(bitStream[i]==bitStream[i-1]):    # This nested if quasi-enforces 8b/10b
-        if(bitStream[i]==bitStream[i-2]):
-            if(bitStream[i]==bitStream[i-3]):
-                if(bitStream[i]==bitStream[i-4]):
-                    if(bitStream[i]==1):
+    if bitStream[i]==bitStream[i - 1]:    # This nested if quasi-enforces 8b/10b
+        if bitStream[i]==bitStream[i - 2]:
+            if bitStream[i]==bitStream[i - 3]:
+                if bitStream[i]==bitStream[i - 4]:
+                    if bitStream[i]==1:
                         bitStream[i]=0
                     else:
                         bitStream[i]=1
 
     outStr = "+ " + str((i*bitPeriod+riseTime/2)+(timeError[i]*1e-12))
-    if(i!=0):
-        if(bitStream[i]!=bitStream[i-1]):  # Print a PWL data point when a bit toggles
+    if i!=0:
+        if bitStream[i]!=bitStream[i - 1]:  # Print a PWL data point when a bit toggles
             outStr = outStr + "      " + str(bitStream[i]) + "     "
             outStr=outStr+str((i*bitPeriod+riseTime/2)+(timeError[i]*1e-12)+riseTime) + "      "
-            if(bitStream[i]==0):
+            if bitStream[i]==0:
                 outStr = outStr + "1\n"
             else:
                 outStr = outStr + "0\n"
             fileWrite.write(outStr)
-            if(i%1000000==0):
+            if i%1000000==0:
                  print (".",end="")
 
 fileWrite.close()

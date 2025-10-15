@@ -8,8 +8,8 @@ import os, fnmatch, time, datetime
 def getFileList(dirName):
     listOfFiles = os.listdir(dirName)
     allFiles = list ()
-    for entry in listOfFiles:
-        fullPath = os.path.join(dirName,entry)
+    for file in listOfFiles:
+        fullPath = os.path.join(dirName,file)
         if os.path.isdir(fullPath):
             allFiles = allFiles + getFileList(fullPath)
         else:
@@ -20,11 +20,11 @@ def getFileList(dirName):
 def configHandle(dirName,age):
     os.chdir(dirName)
     listConfigFull = getFileList(".")
-    for entry in listConfigFull:
-        if(fnmatch.fnmatch(entry,'*.meas') or fnmatch.fnmatch(entry,'*.config') or fnmatch.fnmatch(entry,'*.runlog')):
-            if(isFileOld(entry,age)):
-                print("Deleting.... ",entry)
-                os.remove(entry)
+    for config in listConfigFull:
+        if fnmatch.fnmatch(config,'*.meas') or fnmatch.fnmatch(config,'*.config') or fnmatch.fnmatch(config,'*.runlog'):
+            if isFileOld(config,age):
+                print("Deleting.... ",config)
+                os.remove(config)
     return
 
 # Function to check and return file age
@@ -35,15 +35,15 @@ def isFileOld(inputFile,timeInput):
     else:
         return 0
 
-if(__name__=="__main__"):
+if __name__== "__main__":
     filesOlderThan = 240    # Files older than this will be deleted (in hours, 0 deletes all)
     listDirFull = getFileList(".")
     for entry in listDirFull:
         if fnmatch.fnmatch(entry,"*.pkl*"):
-            if(isFileOld(entry,filesOlderThan)):
+            if isFileOld(entry, filesOlderThan):
                 print("Deleting.... ",entry)
                 os.remove(entry)
     configHandle("..\PCIE_GEN4_TX",filesOlderThan)
     configHandle("..\PCIE_GEN4_RX",filesOlderThan)
-    exit(time.sleep(5))    # Give time for non command line users to read deletions
+    exit(time.sleep(5))    # Give time for non-command line users to read deletions
 
